@@ -1,3 +1,12 @@
+use ::{
+    Dot,
+    Cross,
+    Length,
+    Normalize,
+};
+
+use std::mem;
+
 use std::ops::{
     Add,
     Sub,
@@ -6,46 +15,40 @@ use std::ops::{
 };
 
 use num::{
+    One,
     Zero,
-    Float,
 };
 
-pub trait Vector<N>:
-    Add<Self, Output=Self> +
-    Add<N, Output=Self> +
-    Sub<Self, Output=Self> +
-    Sub<N, Output=Self> +
-    Mul<N, Output=Self> +
-    Div<N, Output=Self> +
-    Zero
-    where N: Float
-{
+#[derive(Copy, Clone, PartialEq, PartialOrd, Debug)]
+pub struct Vec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
-#[derive(Clone, Copy, PartialEq, PartialOrd, Hash, Debug)]
-pub struct Vec3<N>
-    where N: Float
-{
-    x: N,
-    y: N,
-    z: N,
-}
-
-impl<N> Vec3<N>
-    where N: Float
-{
-    fn new(x: N, y: N, z: N) -> Vec3<N> {
+impl Vec3 {
+    pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
         Vec3 {
             x: x,
             y: y,
             z: z,
         }
     }
+
+    pub fn as_array(&self) -> &[f32; 3] {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
+
+    pub fn as_array_mut(&mut self) -> &mut [f32; 3] {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
 }
 
-impl<N> Add for Vec3<N>
-    where N: Float
-{
+impl Add for Vec3 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -57,12 +60,10 @@ impl<N> Add for Vec3<N>
     }
 }
 
-impl<N> Add<N> for Vec3<N>
-    where N: Float
-{
+impl Add<f32> for Vec3 {
     type Output = Self;
 
-    fn add(self, rhs: N) -> Self::Output {
+    fn add(self, rhs: f32) -> Self::Output {
         Vec3 {
             x: self.x + rhs,
             y: self.y + rhs,
@@ -71,9 +72,7 @@ impl<N> Add<N> for Vec3<N>
     }
 }
 
-impl<N> Sub for Vec3<N>
-    where N: Float
-{
+impl Sub for Vec3 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -85,12 +84,10 @@ impl<N> Sub for Vec3<N>
     }
 }
 
-impl<N> Sub<N> for Vec3<N>
-    where N: Float
-{
+impl Sub<f32> for Vec3 {
     type Output = Self;
 
-    fn sub(self, rhs: N) -> Self::Output {
+    fn sub(self, rhs: f32) -> Self::Output {
         Vec3 {
             x: self.x - rhs,
             y: self.y - rhs,
@@ -99,12 +96,10 @@ impl<N> Sub<N> for Vec3<N>
     }
 }
 
-impl<N> Mul<N> for Vec3<N>
-    where N: Float
-{
+impl Mul<f32> for Vec3 {
     type Output = Self;
 
-    fn mul(self, rhs: N) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         Vec3 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -113,12 +108,10 @@ impl<N> Mul<N> for Vec3<N>
     }
 }
 
-impl<N> Div<N> for Vec3<N>
-    where N: Float
-{
+impl Div<f32> for Vec3 {
     type Output = Self;
 
-    fn div(self, rhs: N) -> Self::Output {
+    fn div(self, rhs: f32) -> Self::Output {
         Vec3 {
             x: self.x / rhs,
             y: self.y / rhs,
@@ -127,14 +120,38 @@ impl<N> Div<N> for Vec3<N>
     }
 }
 
-impl<N> Zero for Vec3<N>
-    where N: Float
-{
+impl Dot for Vec3 {
+    fn dot(&self, rhs: &Self) -> f32 {
+        (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
+    }
+}
+
+impl Cross for Vec3 {
+    fn cross(&self, rhs: &Self) -> Self {
+        Vec3::new(self.y * rhs.z - rhs.y * self.z,
+                  self.z * rhs.x - rhs.z * self.x,
+                  self.x * rhs.y - rhs.x * self.y,)
+    }
+}
+
+impl Normalize for Vec3 {
+    fn normalize(&self) -> Self {
+        *self * (f32::one() / f32::sqrt(self.dot(self)))
+    }
+}
+
+impl Length for Vec3 {
+    fn length(&self) -> f32 {
+        f32::sqrt(self.dot(self))
+    }
+}
+
+impl Zero for Vec3 {
     fn zero() -> Self {
         Vec3 {
-            x: N::zero(),
-            y: N::zero(),
-            z: N::zero(),
+            x: f32::zero(),
+            y: f32::zero(),
+            z: f32::zero(),
         }
     }
 
@@ -143,7 +160,3 @@ impl<N> Zero for Vec3<N>
     }
 }
 
-impl<N> Vector<N> for Vec3<N>
-    where N: Float
-{
-}
